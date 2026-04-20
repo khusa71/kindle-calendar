@@ -1,0 +1,109 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="app"></div>
+  <script>
+    function el(tag, opts = {}, children = []) {
+      const node = document.createElement(tag);
+      if (opts.class) node.className = opts.class;
+      if (opts.text != null) node.textContent = opts.text;
+      if (opts.style) Object.assign(node.style, opts.style);
+      for (const child of children) {
+        if (child) node.appendChild(child);
+      }
+      return node;
+    }
+
+    function render(data) {
+      const {
+        title, generatedAt, nowLabel, days, hourRows,
+        hourStart, hourEnd, currentTimePct, showCurrentTimeLine,
+        totalTimed, totalAllDay,
+      } = data;
+
+      const app = document.getElementById('app');
+      while (app.firstChild) app.removeChild(app.firstChild);
+
+      app.style.setProperty('--day-count', String(days.length));
+
+      const titleBar = el('div', { class: 'title-bar' }, [
+        el('div', { class: 'title', text: title }),
+        el('div', { class: 'now', text: nowLabel }),
+      ]);
+
+      const headerRow = el('div', { class: 'day-header-row' }, [
+        el('div', { class: 'corner' }),
+        ...days.map(d => el('div', {
+          class: 'day-header' + (d.isToday ? ' today' : ''),
+          text: d.label,
+        })),
+      ]);
+
+      const alldayBand = el('div', { class: 'allday-band' }, [
+        el('div', { class: 'spacer' }),
+        ...days.map(d => el('div', { class: 'allday-cell' },
+          d.allDayEvents.map(ev => el('div', {
+            class: 'allday-event' + (ev.style === 'outline' ? ' outline' : ''),
+            text: ev.title,
+          }))
+        )),
+      ]);
+
+      const hourCol = el('div', { class: 'hour-col' },
+        hourRows.map(h => el('div', { class: 'hour-label', text: h.label }))
+      );
+
+      const dayCols = days.map(d => {
+        const cells = hourRows.map(() => el('div', { class: 'hour-cell' }));
+        const events = d.timedEvents.map(ev => {
+          const laneCount = ev.laneCount || 1;
+          const lane = ev.lane || 0;
+          const widthPct = 100 / laneCount;
+          const leftPct = lane * widthPct;
+          const evNode = el('div', {
+            class: 'event' + (ev.style === 'outline' ? ' outline' : ''),
+            style: {
+              top: ev.topPct.toFixed(2) + '%',
+              height: ev.heightPct.toFixed(2) + '%',
+              left: `calc(${leftPct.toFixed(2)}% + 2px)`,
+              width: `calc(${widthPct.toFixed(2)}% - 4px)`,
+            },
+          });
+          evNode.appendChild(el('span', { class: 'time', text: ev.timeLabel + ' ' }));
+          evNode.appendChild(document.createTextNode(ev.title));
+          return evNode;
+        });
+        return el('div', { class: 'day-col' + (d.isToday ? ' today' : '') }, [...cells, ...events]);
+      });
+
+      const grid = el('div', { class: 'grid' }, [hourCol, ...dayCols]);
+
+      if (showCurrentTimeLine) {
+        const nowLine = el('div', {
+          class: 'now-line',
+          style: { top: currentTimePct.toFixed(2) + '%' },
+        }, [el('div', { class: 'now-dot' })]);
+        grid.appendChild(nowLine);
+      }
+
+      const footer = el('div', { class: 'footer' }, [
+        el('span', { text: `${totalTimed} events · ${totalAllDay} all-day · ${hourRows.length}h window` }),
+        el('span', { text: 'Updated ' + generatedAt }),
+      ]);
+
+      app.appendChild(titleBar);
+      app.appendChild(headerRow);
+      app.appendChild(alldayBand);
+      app.appendChild(grid);
+      app.appendChild(footer);
+    }
+
+    if (window.__DATA__) render(window.__DATA__);
+    window.__render = render;
+  </script>
+</body>
+</html>

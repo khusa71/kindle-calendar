@@ -1,0 +1,57 @@
+name: Render calendar
+
+on:
+  schedule:
+    - cron: '0 */6 * * *'
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'renderer/**'
+      - 'src/**'
+      - 'config.yml'
+      - 'calendars.yml'
+      - '.github/workflows/render.yml'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: render
+  cancel-in-progress: true
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci || npm install
+
+      - name: Render PNG
+        env:
+          CAL_URL_NETSOFT: ${{ secrets.CAL_URL_NETSOFT }}
+          CAL_URL_SEVENSEAS: ${{ secrets.CAL_URL_SEVENSEAS }}
+        run: node renderer/render.js
+
+      - name: Prepare publish directory
+        run: |
+          mkdir -p public
+          cp output/cal.png public/cal.png
+          cp renderer/index-page.html public/index.html
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./public
+          publish_branch: gh-pages
+          force_orphan: true

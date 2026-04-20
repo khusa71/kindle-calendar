@@ -1,0 +1,9 @@
+# Each calendar references an env var holding the secret ICS URL.
+# URLs themselves live in GitHub Actions secrets (or .env locally) — never in this file.
+calendars:
+  - name: Netsoft
+    urlEnv: CAL_URL_NETSOFT
+    style: filled
+  - name: Seven Seas
+    urlEnv: CAL_URL_SEVENSEAS
+    style: filled

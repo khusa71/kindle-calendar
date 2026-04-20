@@ -1,0 +1,10 @@
+timezone: Asia/Kolkata
+daysShown: 3
+hoursShown: 12
+hoursBeforeNow: 2
+showCurrentTimeLine: true
+display:
+  width: 800
+  height: 600
+refresh:
+  cronHours: 6

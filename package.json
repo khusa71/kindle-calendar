@@ -1,0 +1,17 @@
+{
+  "name": "kindle-calendar",
+  "version": "1.0.0",
+  "description": "Weekly block calendar renderer for jailbroken Kindle",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "render": "node renderer/render.js"
+  },
+  "dependencies": {
+    "js-yaml": "^4.1.0",
+    "luxon": "^3.5.0",
+    "node-ical": "^0.20.1",
+    "puppeteer": "^23.0.0",
+    "sharp": "^0.33.5"
+  }
+}
